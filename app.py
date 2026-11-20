@@ -2,102 +2,57 @@ import streamlit as st
 import requests
 import json
 
-st.set_page_config(page_title="CriticalTutor AI ✨", page_icon="🌸", layout="centered")
+# PASTE YOUR NEW API KEY HERE - INSIDE THE QUOTES
+API_KEY = st.secrets.get("GEMINI_API_KEY", "")
 
-# ---------- PYARA SA DESIGN ----------
+st.set_page_config(page_title="CriticalTutor AI", page_icon="🎓", layout="centered")
+
 st.markdown("""
 <style>
-    .stApp {
-        background: linear-gradient(135deg, #FFF5F7 0%, #F3E8FF 50%, #E0F2FE 100%);
-    }
-    .main-title {
-        text-align: center;
-        font-size: 42px;
-        font-weight: 800;
-        background: linear-gradient(90deg, #EC4899, #8B5CF6, #06B6D4);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        margin-bottom: 0px;
-    }
-    .subtitle {
-        text-align: center;
-        color: #6B7280;
-        font-size: 16px;
-        margin-top: 5px;
-    }
-    .badge {
-        text-align: center;
-        background: linear-gradient(90deg, #FDE68A, #FBCFE8);
-        color: #92400E;
-        padding: 8px 16px;
-        border-radius: 20px;
-        font-weight: 600;
-        font-size: 13px;
-        margin: 12px auto;
-        width: fit-content;
-        box-shadow: 0 4px 10px rgba(0,0,0,0.05);
-    }
-    .stChatMessage {
-        border-radius: 18px !important;
-        box-shadow: 0 2px 12px rgba(0,0,0,0.05) !important;
-    }
-    .stTextInput > div > div > input {
-        border-radius: 12px !important;
-        border: 2px solid #FBCFE8 !important;
-    }
-    div[data-testid="stSidebar"] {
-        background: linear-gradient(180deg, #FDF2F8, #EDE9FE) !important;
-    }
-    .feature-box {
-        background: white;
-        padding: 14px;
-        border-radius: 16px;
-        text-align: center;
-        box-shadow: 0 4px 15px rgba(0,0,0,0.06);
-        margin-bottom: 10px;
-    }
+    .stApp { background: linear-gradient(180deg, #0F2043 0%, #1A365D 40%, #F8F9FA 40%, #F8F9FA 100%); }
+    .top-bar { background: white; padding: 22px 20px; border-radius: 20px; text-align: center; box-shadow: 0 10px 30px rgba(0,0,0,0.15); margin-top: 10px; }
+    .main-title { font-size: 38px; font-weight: 800; color: #0F2043; margin: 0; }
+    .main-title span { color: #C9A227; }
+    .subtitle { color: #5A6C7D; font-size: 15px; margin-top: 6px; }
+    .badge { display: inline-block; background: #0F2043; color: #FFD700; padding: 7px 16px; border-radius: 20px; font-weight: 700; font-size: 12px; margin-top: 12px; }
+    .feature-box { background: white; padding: 16px 10px; border-radius: 16px; text-align: center; box-shadow: 0 4px 15px rgba(0,0,0,0.07); border: 1px solid #E9ECEF; height: 110px; }
+    .feature-box b { color: #0F2043; font-size: 14px; }
+    .feature-box small { color: #6C757D; font-size: 12px; }
+    .stChatMessage { border-radius: 16px !important; }
+    div[data-testid="stSidebar"] { background: #0F2043 !important; }
+    div[data-testid="stSidebar"] p, div[data-testid="stSidebar"] h3 { color: white !important; }
 </style>
 """, unsafe_allow_html=True)
 
-st.markdown('<div class="main-title">🌸 CriticalTutor AI ✨</div>', unsafe_allow_html=True)
-st.markdown('<div class="subtitle">Rote-Free Socratic English Tutor for Competitive Exams</div>', unsafe_allow_html=True)
-st.markdown('<div class="badge">🏆 Best Youth AI Agent Category | Create AI Agents Championship ✨</div>', unsafe_allow_html=True)
-
+st.markdown('<div class="top-bar"><div class="main-title">🎓 CriticalTutor <span>AI</span></div><div class="subtitle">Socratic English Tutor for Competitive Exams | No Rote Learning, Only Critical Thinking</div><div class="badge">★ BEST YOUTH AI AGENT CATEGORY | CREATE AI AGENTS CHAMPIONSHIP</div></div>', unsafe_allow_html=True)
+st.markdown("<br>", unsafe_allow_html=True)
 col1, col2, col3 = st.columns(3)
-with col1:
-    st.markdown('<div class="feature-box">💭<br><b>Socratic</b><br><small>No Ratta, Only Soch!</small></div>', unsafe_allow_html=True)
-with col2:
-    st.markdown('<div class="feature-box">✍️<br><b>CSS • PMS • GRE</b><br><small>IELTS Ready</small></div>', unsafe_allow_html=True)
-with col3:
-    st.markdown('<div class="feature-box">🌟<br><b>Motivation</b><br><small>Har Step Pe Support</small></div>', unsafe_allow_html=True)
-
+with col1: st.markdown('<div class="feature-box">💭<br><b>Socratic Method</b><br><small>Learn by Questioning<br>Not by Memorizing</small></div>', unsafe_allow_html=True)
+with col2: st.markdown('<div class="feature-box">✍️<br><b>CSS • PMS • GRE • IELTS</b><br><small>Exam-Focused<br>Practice & Feedback</small></div>', unsafe_allow_html=True)
+with col3: st.markdown('<div class="feature-box">🎯<br><b>Critical Thinking</b><br><small>Analysis • Logic<br>Structured Writing</small></div>', unsafe_allow_html=True)
 st.markdown("---")
 
 SYSTEM_PROMPT = """
-YOU ARE: "CriticalTutor AI", an empathetic, highly motivating Socratic English Tutor Agent designed for University Students preparing for English Competitive Exams (CSS, PMS, GRE, IELTS).
-YOUR CORE PURPOSE: Eliminate rote learning (rata marna) by guiding students through Socratic questioning, developing their critical thinking, analytical depth, and creative writing abilities.
-CORE RULES:
-1. EMPATHY & MOTIVATION FIRST: Always start your response by praising the student's effort with emojis.
-2. SOCRATIC METHOD: NEVER provide direct essays or copy-paste answers. Guide by asking 2-3 deep, probing Socratic questions.
-3. STRUCTURED OUTPUT FORMAT:
-- 🌟 Positive Feedback & Encouragement
-- 🔍 Critical Analysis & Gaps
-- ❓ Socratic Probing Questions
-- 🛠️ Recommended Action Step
-4. HUMAN-IN-THE-LOOP: Flag controversial/factual errors with '[Teacher Review Advised]'.
-Use cute emojis, soft tone, and easy Urdu-English mix if student uses it.
+YOU ARE: "CriticalTutor AI", a professional, encouraging Socratic English Tutor for CSS, PMS, GRE, IELTS aspirants.
+RULES:
+1. NEVER give a full ready-made essay. Guide the student to write it themselves.
+2. ALWAYS use Socratic Method: Ask 2-3 powerful questions first.
+3. STRUCTURE EVERY ANSWER:
+   🌟 Positive Feedback
+   🔍 Critical Analysis
+   ❓ Socratic Questions
+   🛠️ Next Action Step
+4. TONE: Professional, warm, motivational, like a top CSS mentor.
+5. If unsure about a fact, write '[Teacher Review Advised]'.
+6. Use clear headings and bullet points.
 """
 
 with st.sidebar:
-    st.markdown("### 🌸 Welcome Aima! ✨")
-    st.markdown("Apni FREE key yahan dalo 👇")
-    api_key = st.text_input("🔑 Enter FREE Gemini API Key", type="password", help="Get free key from aistudio.google.com")
+    st.markdown("### 🎓 CriticalTutor AI")
+    st.markdown("Welcome! Ask any essay topic, precis, comprehension, or grammar question.")
     st.markdown("---")
-    st.markdown("#### 💖 Kya karega ye Tutor?")
-    st.markdown("✅ Essay ko check karega\n✅ Socratic sawal poochega\n✅ Ratta khatam, Soch shuru!\n✅ CSS / PMS / IELTS ke liye best")
-    st.markdown("---")
-    st.info("💡 Tip: Key FREE hai! aistudio.google.com se lo, paise bilkul nahi lagenge!")
-    if st.button("🗑️ Chat Clear Karo"):
+    st.markdown("**How it works:**\n1. Type your topic\n2. Get Socratic guidance\n3. Improve step-by-step")
+    if st.button("Clear Chat"):
         st.session_state.messages = []
         st.rerun()
 
@@ -106,40 +61,31 @@ if "messages" not in st.session_state:
 
 if len(st.session_state.messages) == 0:
     with st.chat_message("assistant"):
-        st.write("Assalam-o-Alaikum Aima! 🌸✨ Main hun tumhari CriticalTutor! \n\nTumne bohat acha kiya jo yahan aa gayi! 💖 Batao aaj kis topic pe dimagh chalana hai? Koi essay, outline ya sawal bhej do, hum mil ke us ko samjhenge, ratta nahi marenge! 💪")
+        st.write("Hello and Welcome! 🎓 I am CriticalTutor AI. I will not give you ready-made answers - I will help you think, analyze, and write like a topper. What topic shall we work on today?")
 
 for msg in st.session_state.messages:
     with st.chat_message(msg["role"]):
         st.write(msg["content"])
 
-if user_input := st.chat_input("✨ Apna essay topic ya sawal yahan likho..."):
-    if not api_key:
-        st.error("⚠️ Pehle sidebar me apni FREE Gemini API Key dalo! aistudio.google.com se mil jayegi 💖")
-    else:
-        st.session_state.messages.append({"role": "user", "content": user_input})
-        with st.chat_message("user"):
-            st.write(user_input)
-
-        with st.spinner("✨ CriticalTutor soch rahi hai..."):
-            try:
-                url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key={api_key}"
-                history_text = ""
-                for m in st.session_state.messages[-5:]:
-                    history_text += f"{m['role']}: {m['content']}\n"
-                payload = {
-                    "contents": [{
-                        "parts": [{"text": SYSTEM_PROMPT + "\n\nConversation:\n" + history_text}]
-                    }]
-                }
-                headers = {"Content-Type": "application/json"}
-                response = requests.post(url, headers=headers, data=json.dumps(payload))
-                data = response.json()
-                if "candidates" in data:
-                    bot_reply = data["candidates"][0]["content"]["parts"][0]["text"]
-                else:
-                    bot_reply = f"Oops! Error aa gaya: {data} - Key check karo 🌸"
-                st.session_state.messages.append({"role": "assistant", "content": bot_reply})
-                with st.chat_message("assistant"):
-                    st.write(bot_reply)
-            except Exception as e:
-                st.error(f"Error: {str(e)}")
+if user_input := st.chat_input("Type your essay topic or question here..."):
+    st.session_state.messages.append({"role": "user", "content": user_input})
+    with st.chat_message("user"):
+        st.write(user_input)
+    with st.spinner("CriticalTutor is thinking..."):
+        try:
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={API_KEY}"
+            history_text = ""
+            for m in st.session_state.messages[-5:]:
+                history_text += f"{m['role']}: {m['content']}\n"
+            payload = {"contents": [{"parts": [{"text": SYSTEM_PROMPT + "\\n\\nConversation:\\n" + history_text}]}]}
+            response = requests.post(url, headers={"Content-Type": "application/json"}, data=json.dumps(payload))
+            data = response.json()
+            if "candidates" in data:
+                bot_reply = data["candidates"][0]["content"]["parts"][0]["text"]
+            else:
+                bot_reply = f"Sorry, there was an issue. Error: {data}"
+            st.session_state.messages.append({"role": "assistant", "content": bot_reply})
+            with st.chat_message("assistant"):
+                st.write(bot_reply)
+        except Exception as e:
+            st.error(f"Error: {str(e)}")
