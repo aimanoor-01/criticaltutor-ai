@@ -10,8 +10,10 @@ Run:  pip install -r requirements.txt
 """
 
 import re
+import json
 import time
 import random
+from pathlib import Path
 import streamlit as st
 
 # --------------------------------------------------------------------------
@@ -87,7 +89,7 @@ TOPICS = {
         ],
     },
     "governance": {
-        "keys": ["democracy", "governance", "corruption", "politics", "constitution", "rule of law", "justice", "terror", "extremism", "security"],
+        "keys": ["democracy", "governance", "corruption", "politics", "constitution", "rule of law", "justice"],
         "gaps": [
             "Political topics tempt writers into one-sided opinion. Examiners want balance and evidence together.",
             "Terms like 'democracy' or 'security' carry many meanings. Choosing one definition and defending it is a strength.",
@@ -99,7 +101,7 @@ TOPICS = {
         ],
     },
     "society": {
-        "keys": ["women", "gender", "youth", "population", "culture", "society", "family", "religion", "tolerance", "media"],
+        "keys": ["youth", "population", "culture", "social", "family", "religion", "tolerance", "media"],
         "gaps": [
             "Social topics invite sweeping claims about 'society' or 'people'. Who exactly are you describing?",
             "Culture and policy interact. Is your essay treating one as fixed while the other changes?",
@@ -108,6 +110,54 @@ TOPICS = {
             "Which group is most affected, and have you represented their perspective fairly?",
             "What is the difference between a *tradition* and a *barrier* in this issue?",
             "If a policymaker read your essay, what single action would they take after finishing it?",
+        ],
+    },
+    "water": {
+        "keys": ["water", "drought", "dam", "irrigation", "indus"],
+        "gaps": [
+            "Water essays often stay at 'scarcity is bad'. A strong essay separates **supply, management and politics**.",
+            "Is the crisis one of too little water or too poor management? The answer changes your whole solution.",
+        ],
+        "questions": [
+            "If rainfall stayed the same, what human decisions would still cause shortages?",
+            "Who has the power to fix this (state, provinces, farmers, neighbouring countries), and who is missing from your essay?",
+            "What trade-off does your proposed solution create, for example between farms and cities?",
+        ],
+    },
+    "health": {
+        "keys": ["health", "pandemic", "disease", "hospital", "medical", "nutrition", "mental health"],
+        "gaps": [
+            "Health topics tend to list problems. Examiners reward **causes, systems and priorities**.",
+            "Access, quality and cost are separate challenges. Which one is your essay really about?",
+        ],
+        "questions": [
+            "If you had a limited budget, what would you fund first, and what would you refuse to fund?",
+            "How do poverty, education and health connect in your argument?",
+            "What would a rural patient and an urban policymaker each say about your solution?",
+        ],
+    },
+    "terrorism": {
+        "keys": ["terror", "extremism", "militancy", "radicalization", "security", "war", "conflict"],
+        "gaps": [
+            "Security essays can slide into one-sided blame. Strong essays separate **root causes, enablers and responses**.",
+            "Force alone and dialogue alone are both simple answers. What mix does your evidence support?",
+        ],
+        "questions": [
+            "What conditions make extremist ideas attractive, and which of them can a state actually change?",
+            "What did a past counter-terrorism approach achieve, and what did it cost?",
+            "How would you protect civil liberties while improving security?",
+        ],
+    },
+    "gender": {
+        "keys": ["women", "gender", "girls", "female", "harassment", "empowerment"],
+        "gaps": [
+            "'Women' is not one group. Class, region and education create very different experiences.",
+            "Laws and lived reality can differ. Does your essay explain *why*?",
+        ],
+        "questions": [
+            "Which barrier is legal, which is economic and which is social? How would solutions differ?",
+            "Who else (families, employers, religious scholars) must change for your solution to work?",
+            "How would you measure success a year from now?",
         ],
     },
 }
@@ -144,6 +194,47 @@ EXAM_TIPS = {
 # --------------------------------------------------------------------------
 # Demo Socratic engine
 # --------------------------------------------------------------------------
+
+# --------------------------------------------------------------------------
+# Saved memory (per nickname, stored in a local JSON file)
+# --------------------------------------------------------------------------
+DATA_FILE = Path("chat_memory.json")
+
+
+def clean_nick(s: str) -> str:
+    return re.sub(r"[^a-z0-9_\- ]", "", (s or "").lower().strip())[:30]
+
+
+def _read_all() -> dict:
+    try:
+        return json.loads(DATA_FILE.read_text(encoding="utf-8"))
+    except Exception:
+        return {}
+
+
+def load_user(nick: str):
+    return _read_all().get(nick) if nick else None
+
+
+def save_user(nick: str, messages: list):
+    if not nick:
+        return
+    try:
+        data = _read_all()
+        data[nick] = messages[-60:]
+        DATA_FILE.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+    except Exception:
+        pass  # saving is best-effort; the chat still works
+
+
+def delete_user(nick: str):
+    try:
+        data = _read_all()
+        data.pop(nick, None)
+        DATA_FILE.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+    except Exception:
+        pass
+
 
 def classify(text: str) -> str:
     t = text.lower().strip()
@@ -201,7 +292,7 @@ def detect_exam(text: str):
     return None, None
 
 
-def build_response(text: str, turn: int) -> str:
+def build_response(text: str, turn: int, history=None) -> str:
     kind = classify(text)
     exam, exam_tip = detect_exam(text)
     topic_name, topic = find_topic(text)
@@ -218,6 +309,17 @@ def build_response(text: str, turn: int) -> str:
         praise = seed.choice(PRAISE_TOPIC)
     else:
         praise = seed.choice(PRAISE_GENERIC)
+
+    # ---- Continuity: refer back to an earlier topic from this chat
+    prev_msgs = [m["content"] for m in (history or []) if m["role"] == "user"][:-1]
+    prev_topic, prev_text = None, None
+    for old in reversed(prev_msgs):
+        n, _ = find_topic(old)
+        if n and old != text:
+            prev_topic, prev_text = n, old
+            break
+    if prev_topic and kind in ("draft", "topic", "essay_request"):
+        praise += f" I also see you were working on a **{prev_topic}** topic earlier, so let's keep building on that."
 
     # ---- Section 2: Critical analysis & gaps
     if kind == "essay_request":
@@ -244,6 +346,9 @@ def build_response(text: str, turn: int) -> str:
         qs = topic["questions"]
     else:
         qs = GENERIC["questions"]
+
+    if prev_text and kind == "draft":
+        qs[2] = f'Compare this draft with your earlier idea ("{prev_text[:70]}..."). What has changed in your thinking?'
 
     # ---- Section 4: Action step
     if kind == "essay_request":
@@ -391,7 +496,10 @@ with st.sidebar:
         "2️⃣ Get feedback, gaps and questions<br>3️⃣ Do the 10-minute task, then reply</div>",
         unsafe_allow_html=True,
     )
-    if st.button("🗑️ Start new session", use_container_width=True):
+    st.text_input("👤 Your nickname (saves your chat)", key="nick", placeholder="e.g. aiman")
+    st.caption("Use a nickname, not your real name, and avoid private details.")
+    if st.button("🗑️ Clear my chat", use_container_width=True):
+        delete_user(clean_nick(st.session_state.get("nick", "")))
         st.session_state.messages = [{"role": "assistant", "content": WELCOME}]
         st.rerun()
 
@@ -413,6 +521,15 @@ st.markdown(
 
 if "messages" not in st.session_state:
     st.session_state.messages = [{"role": "assistant", "content": WELCOME}]
+
+# Load a saved chat when a nickname is entered
+nick = clean_nick(st.session_state.get("nick", ""))
+if nick and st.session_state.get("loaded_for") != nick:
+    saved = load_user(nick)
+    if saved:
+        st.session_state.messages = saved
+        st.toast(f"Welcome back, {nick}! Your saved chat is loaded.", icon="👋")
+    st.session_state.loaded_for = nick
 
 # Quick-start examples (shown until the first student message)
 if len(st.session_state.messages) == 1:
@@ -440,8 +557,9 @@ if prompt:
         st.markdown(prompt)
 
     turn = sum(1 for m in st.session_state.messages if m["role"] == "user")
-    reply = build_response(prompt, turn)
+    reply = build_response(prompt, turn, st.session_state.messages)
 
     with st.chat_message("assistant", avatar="🎓"):
         st.write_stream(stream_text(reply))
     st.session_state.messages.append({"role": "assistant", "content": reply})
+    save_user(nick, st.session_state.messages)
