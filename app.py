@@ -279,49 +279,164 @@ def stream_text(text: str):
 
 
 # --------------------------------------------------------------------------
+# Light & colourful theme (custom CSS)
+# --------------------------------------------------------------------------
+CSS = """
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&display=swap');
+html, body, [class*="css"], .stMarkdown, p, li, button, input, textarea { font-family: 'Poppins', sans-serif !important; }
+
+.stApp {
+    background: linear-gradient(135deg, #fff1f8 0%, #f3ecff 35%, #e8f6ff 70%, #eafff6 100%);
+    background-attachment: fixed;
+}
+header[data-testid="stHeader"] { background: transparent; }
+.block-container { padding-top: 1.5rem; max-width: 860px; }
+
+/* Sidebar */
+[data-testid="stSidebar"] {
+    background: linear-gradient(180deg, #ffffff 0%, #f5eeff 60%, #e9f4ff 100%);
+    border-right: 1px solid #e6dcff;
+}
+[data-testid="stSidebar"] * { color: #2b2150; }
+
+/* Hero banner */
+.hero {
+    background: linear-gradient(120deg, #7c3aed 0%, #ec4899 55%, #f59e0b 100%);
+    border-radius: 26px; padding: 30px 34px; margin-bottom: 18px;
+    box-shadow: 0 14px 36px rgba(124, 58, 237, 0.28);
+    position: relative; overflow: hidden;
+}
+.hero:after {
+    content: ""; position: absolute; right: -50px; top: -60px; width: 220px; height: 220px;
+    background: rgba(255,255,255,0.18); border-radius: 50%;
+}
+.hero h1 { color: #fff !important; font-size: 2.3rem; font-weight: 800; margin: 0 0 6px 0; padding: 0; }
+.hero p  { color: #fff7ff !important; font-size: 1.02rem; margin: 0; }
+
+/* Feature chips */
+.chips { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 18px; }
+.chip {
+    background: #ffffff; border-radius: 999px; padding: 8px 16px; font-size: 0.85rem;
+    font-weight: 600; color: #5b21b6; box-shadow: 0 4px 14px rgba(124, 58, 237, 0.14);
+    border: 1px solid #eadcff;
+}
+
+/* Status badge */
+.badge {
+    display: inline-flex; align-items: center; gap: 10px; background: #e7fff3; color: #047857 !important;
+    border: 1px solid #a7f3d0; border-radius: 999px; padding: 8px 16px; font-weight: 700; font-size: 0.9rem;
+}
+.dot { width: 11px; height: 11px; border-radius: 50%; background: #10b981; display: inline-block;
+       animation: pulse 1.6s infinite; }
+@keyframes pulse {
+    0% { box-shadow: 0 0 0 0 rgba(16,185,129,0.6); }
+    70% { box-shadow: 0 0 0 10px rgba(16,185,129,0); }
+    100% { box-shadow: 0 0 0 0 rgba(16,185,129,0); }
+}
+.side-card {
+    background: #ffffff; border-radius: 16px; padding: 14px 16px; margin: 12px 0;
+    border: 1px solid #eadcff; box-shadow: 0 4px 14px rgba(124, 58, 237, 0.10); font-size: 0.9rem;
+}
+
+/* Chat bubbles */
+[data-testid="stChatMessage"] {
+    background: #ffffff; border-radius: 20px; padding: 16px 20px; margin-bottom: 14px;
+    border: 1px solid #efe5ff; box-shadow: 0 6px 20px rgba(124, 58, 237, 0.10);
+}
+[data-testid="stChatMessage"] h3 {
+    font-size: 1.05rem; font-weight: 700; margin: 14px 0 6px 0; padding: 6px 12px;
+    background: linear-gradient(90deg, #f3e8ff, #ffe4f1); border-radius: 10px; color: #6d28d9;
+}
+[data-testid="stChatMessage"] p, [data-testid="stChatMessage"] li { color: #2b2150; line-height: 1.65; }
+
+/* Chat input */
+[data-testid="stChatInput"] { border-radius: 22px; border: 2px solid #c4a8ff; background: #ffffff;
+    box-shadow: 0 8px 24px rgba(124, 58, 237, 0.18); }
+
+/* Buttons */
+.stButton > button {
+    background: linear-gradient(90deg, #7c3aed, #ec4899); color: #fff !important; border: none;
+    border-radius: 14px; font-weight: 600; padding: 0.55rem 1rem;
+    box-shadow: 0 6px 16px rgba(236, 72, 153, 0.30); transition: transform .15s ease;
+}
+.stButton > button:hover { transform: translateY(-2px) scale(1.01); color: #fff !important; }
+.stButton > button p { color: #fff !important; }
+</style>
+"""
+st.markdown(CSS, unsafe_allow_html=True)
+
+# --------------------------------------------------------------------------
 # Sidebar
 # --------------------------------------------------------------------------
 with st.sidebar:
-    st.title("🎓 CriticalTutor AI")
+    st.markdown("## 🎓 CriticalTutor AI")
     st.caption("Create AI Agents Championship")
-    st.markdown("**Category:** Youth AI Agent")
-    st.success("🟢 Status: Active (Demo Mode)")
-    st.info("No API key needed. Everything runs locally for instant testing.")
+    st.markdown("**Category:** Best Youth AI Agent")
+    st.markdown('<div class="badge"><span class="dot"></span> Active · Demo Mode</div>', unsafe_allow_html=True)
+    st.markdown('<div class="side-card">⚡ <b>No API key needed.</b> Everything runs instantly for testing.</div>',
+                unsafe_allow_html=True)
     st.markdown(
-        "**Mission:** Replace *rata marna* (rote learning) with critical thinking "
-        "for CSS, PMS, GRE and IELTS students."
+        '<div class="side-card">🎯 <b>Mission:</b> Replace <i>rata marna</i> (rote learning) '
+        "with critical thinking for CSS, PMS, GRE and IELTS students.</div>",
+        unsafe_allow_html=True,
     )
     st.markdown(
-        "**How it works**\n"
-        "1. Share a topic or draft\n"
-        "2. Get feedback, gaps and Socratic questions\n"
-        "3. Do the 10-minute task, then reply\n"
+        '<div class="side-card"><b>How it works</b><br>1️⃣ Share a topic or draft<br>'
+        "2️⃣ Get feedback, gaps and questions<br>3️⃣ Do the 10-minute task, then reply</div>",
+        unsafe_allow_html=True,
     )
     if st.button("🗑️ Start new session", use_container_width=True):
         st.session_state.messages = [{"role": "assistant", "content": WELCOME}]
         st.rerun()
 
 # --------------------------------------------------------------------------
-# Chat UI with session memory
+# Main page
 # --------------------------------------------------------------------------
-st.title("🎓 CriticalTutor AI")
-st.caption("Your Socratic English tutor: it asks, you think.")
+st.markdown(
+    '<div class="hero"><h1>🎓 CriticalTutor AI</h1>'
+    "<p>Your Socratic English tutor. It asks, you think. No more rata marna! ✨</p></div>",
+    unsafe_allow_html=True,
+)
+st.markdown(
+    '<div class="chips"><span class="chip">🧠 Socratic Method</span>'
+    '<span class="chip">🚫 No Rote Learning</span>'
+    '<span class="chip">🛡️ Teacher-Review Safety</span>'
+    '<span class="chip">📝 CSS · PMS · GRE · IELTS</span></div>',
+    unsafe_allow_html=True,
+)
 
 if "messages" not in st.session_state:
     st.session_state.messages = [{"role": "assistant", "content": WELCOME}]
 
+# Quick-start examples (shown until the first student message)
+if len(st.session_state.messages) == 1:
+    st.markdown("**✨ Try an example:**")
+    cols = st.columns(3)
+    examples = [
+        ("🌍 Climate & economies", "Is global climate change a threat to developing economies?"),
+        ("🎓 Education essay", "Write my CSS essay on Education."),
+        ("🤖 Technology topic", "Is artificial intelligence a blessing or a curse for society?"),
+    ]
+    for col, (label, text) in zip(cols, examples):
+        if col.button(label, use_container_width=True):
+            st.session_state.pending = text
+            st.rerun()
+
 for msg in st.session_state.messages:
-    with st.chat_message(msg["role"]):
+    with st.chat_message(msg["role"], avatar="🎓" if msg["role"] == "assistant" else "🧑‍🎓"):
         st.markdown(msg["content"])
 
-if prompt := st.chat_input("Type a topic, thesis or draft paragraph..."):
+prompt = st.chat_input("Type a topic, thesis or draft paragraph...") or st.session_state.pop("pending", None)
+
+if prompt:
     st.session_state.messages.append({"role": "user", "content": prompt})
-    with st.chat_message("user"):
+    with st.chat_message("user", avatar="🧑‍🎓"):
         st.markdown(prompt)
 
     turn = sum(1 for m in st.session_state.messages if m["role"] == "user")
     reply = build_response(prompt, turn)
 
-    with st.chat_message("assistant"):
+    with st.chat_message("assistant", avatar="🎓"):
         st.write_stream(stream_text(reply))
     st.session_state.messages.append({"role": "assistant", "content": reply})
