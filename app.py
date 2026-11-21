@@ -362,6 +362,11 @@ header[data-testid="stHeader"] { background: transparent; }
 }
 .stButton > button:hover { transform: translateY(-2px) scale(1.01); color: #fff !important; }
 .stButton > button p { color: #fff !important; }
+
+/* Fix white strip behind the chat box */
+[data-testid="stBottom"], [data-testid="stBottom"] > div, [data-testid="stBottomBlockContainer"] {
+    background: transparent !important;
+}
 </style>
 """
 st.markdown(CSS, unsafe_allow_html=True)
